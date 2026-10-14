@@ -1,0 +1,11 @@
+#!/bin/sh
+# Refuse any push to main. Changes reach main only through a reviewed pull request.
+# Enabled per clone with: git config core.hooksPath .githooks
+while read -r local_ref local_sha remote_ref remote_sha; do
+  case "$remote_ref" in
+    refs/heads/main)
+      echo "pre-push: direct pushes to main are blocked. Push a branch and open a pull request." >&2
+      exit 1 ;;
+  esac
+done
+exit 0
