@@ -45,6 +45,22 @@ Typical requests and what they mean:
 - "scaffold": first-time generation of the whole project per decision 0006. Only when no
   `package.json` exists yet.
 
+## Branching and review
+
+Every change to `main` goes through a pull request reviewed and merged by the repository
+owner. Claude Code never pushes to `main` and never merges.
+
+- Start every piece of work on a fresh branch from up-to-date `main`: `docs/<topic>` for
+  documentation edits, `sync/<topic>` for code generated from docs, `chore/<topic>` for
+  tooling.
+- Commit on that branch, push it, and open a pull request with `gh pr create`. The PR body
+  lists the governing documents and acceptance scenarios, then the sync report (rule 7).
+- Stop there. Do not approve, merge, or enable auto-merge. The owner reviews and merges.
+- A pre-push hook in `.githooks/` refuses pushes to `main`. It is enabled per clone with
+  `git config core.hooksPath .githooks`; run that once in any new checkout. GitHub-side
+  branch protection is not available on the current plan for a private repository, so the
+  hook and this rule are the enforcement.
+
 ## Toolchain
 
 Node 24 and npm 11 on Windows 11. The shell is PowerShell 7: chain with `;` or `&&`, use
