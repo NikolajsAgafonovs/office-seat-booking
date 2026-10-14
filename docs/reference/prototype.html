@@ -1,0 +1,782 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Office Seat Booking Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Figtree:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: app bar, then a two-column workspace: the floor map (wide, scrolls sideways on phones) and a side panel for the selected seat, team booking and my bookings. Settings for open questions sit in a strip under the map. */
+:root {
+  --bg: #eef2f5;
+  --surface: #ffffff;
+  --ink: #142230;
+  --muted: #5b6b7a;
+  --line: #d3dce4;
+  --floor: #f9fbfc;
+  --wall: #31414f;
+  --room: #e3e9ef;
+  --core: #c9d3dc;
+  --accent: #1d5fa6;      /* my seats, primary actions */
+  --free: #1f8a74;        /* free seat outline */
+  --taken: #a7b3be;       /* taken by someone else */
+  --dedicated: #7b4fb8;   /* dedicated seats */
+  --select: #e09b22;      /* current selection */
+  --divider: #d2433b;
+  --font-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Figtree", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f161d; --surface: #17212b; --ink: #e2e9ef; --muted: #93a2b0; --line: #2a3744;
+    --floor: #1b2631; --wall: #9fb0bf; --room: #233140; --core: #2e3d4c;
+    --accent: #6aa6ec; --free: #4cc4a6; --taken: #4f5f6e; --dedicated: #b08ae6; --select: #f0b44a; --divider: #ef6b62;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f161d; --surface: #17212b; --ink: #e2e9ef; --muted: #93a2b0; --line: #2a3744;
+  --floor: #1b2631; --wall: #9fb0bf; --room: #233140; --core: #2e3d4c;
+  --accent: #6aa6ec; --free: #4cc4a6; --taken: #4f5f6e; --dedicated: #b08ae6; --select: #f0b44a; --divider: #ef6b62;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 14.5px; line-height: 1.45; padding-inline: 16px; padding-block: 0 48px; }
+.app { max-width: 92rem; margin: 0 auto; display: grid; gap: 16px; }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mono { font-family: var(--font-mono); font-size: 0.82em; }
+.muted { color: var(--muted); }
+
+/* App bar */
+.bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; padding-top: 20px; }
+.brand { display: grid; gap: 2px; }
+.brand h1 { margin: 0; font-family: var(--font-display); font-size: 1.55rem; font-weight: 700; letter-spacing: -0.01em; }
+.brand p { margin: 0; font-size: 0.85rem; color: var(--muted); }
+.who { display: flex; align-items: center; gap: 10px; font-size: 0.88rem; }
+.who img { width: 28px; height: 28px; border-radius: 50%; }
+.mode-pill { font-family: var(--font-mono); font-size: 0.7rem; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
+.mode-pill.shared { color: var(--free); border-color: var(--free); }
+
+/* Controls */
+.controls { display: flex; flex-wrap: wrap; gap: 12px 18px; align-items: end; }
+.field { display: grid; gap: 5px; min-width: 0; }
+.label { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); }
+.days { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; max-width: 100%; }
+.day { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 6px 10px; display: grid; justify-items: center; min-width: 54px; line-height: 1.15; }
+.day b { font-size: 1.02rem; font-variant-numeric: tabular-nums; }
+.day small { font-size: 0.7rem; color: var(--muted); }
+.day[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--surface); }
+.day[aria-pressed="true"] small { color: inherit; opacity: 0.85; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--surface); }
+.seg button { border: 0; background: transparent; padding: 7px 12px; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--surface); }
+.seg button:disabled { opacity: 0.4; cursor: default; }
+
+/* Workspace */
+.work { display: grid; grid-template-columns: minmax(0, 1fr) 21rem; gap: 16px; align-items: start; }
+@media (max-width: 980px) { .work { grid-template-columns: 1fr; } }
+.mapcard { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 12px 10px; display: grid; gap: 10px; min-width: 0; }
+.maphead { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 16px; align-items: baseline; }
+.maphead h2 { margin: 0; font-family: var(--font-display); font-size: 1.05rem; }
+.stats { display: flex; gap: 14px; font-size: 0.85rem; color: var(--muted); font-variant-numeric: tabular-nums; flex-wrap: wrap; }
+.stats b { color: var(--ink); }
+.mapwrap { overflow-x: auto; border-radius: 8px; background: var(--floor); position: relative; }
+.tip { position: absolute; pointer-events: none; background: var(--ink); color: var(--surface); font-size: 0.8rem; line-height: 1.3; padding: 4px 9px; border-radius: 6px; white-space: nowrap; transform: translate(-50%, calc(-100% - 6px)); z-index: 3; box-shadow: 0 4px 12px rgba(0,0,0,.18); }
+.tip b { font-family: var(--font-mono); font-weight: 500; margin-right: 6px; }
+#map { display: block; width: 100%; min-width: 860px; height: auto; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 0.8rem; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.sw { width: 14px; height: 12px; border-radius: 3px 3px 2px 2px; border: 1.6px solid; display: inline-block; }
+
+/* SVG styles */
+.wall { fill: none; stroke: var(--wall); stroke-width: 3.2; stroke-linejoin: round; }
+.floorfill { fill: var(--floor); }
+.room rect { fill: var(--room); stroke: var(--line); stroke-width: 1; }
+.room text, .core text { fill: var(--muted); font-family: var(--font-body); font-size: 8px; }
+.core rect { fill: var(--core); }
+.desk { fill: var(--room); stroke: var(--line); stroke-width: 0.8; }
+.divider { stroke: var(--divider); stroke-width: 2.4; stroke-dasharray: 5 4; }
+.divlabel { fill: var(--divider); font-family: var(--font-mono); font-size: 7.5px; }
+.offzone { fill: var(--muted); opacity: 0.07; }
+.seat { cursor: pointer; }
+.seat .cushion { stroke-width: 1.5; rx: 2.5; }
+.seat .back { stroke: none; }
+.seat.free .cushion { fill: var(--surface); stroke: var(--free); } .seat.free .back { fill: var(--free); }
+.seat.mine .cushion { fill: var(--accent); stroke: var(--accent); } .seat.mine .back { fill: var(--accent); }
+.seat.taken .cushion { fill: var(--taken); stroke: var(--taken); } .seat.taken .back { fill: var(--taken); }
+.seat.partial .cushion { fill: url(#halfTaken); stroke: var(--taken); } .seat.partial .back { fill: var(--taken); }
+.seat.ded .cushion { fill: url(#dedHatch); stroke: var(--dedicated); } .seat.ded .back { fill: var(--dedicated); }
+.seat.dedmine .cushion { fill: var(--dedicated); stroke: var(--dedicated); } .seat.dedmine .back { fill: var(--dedicated); }
+.seat.off { cursor: default; } .seat.off .cushion { fill: none; stroke: var(--taken); stroke-dasharray: 2 1.5; opacity: 0.7; } .seat.off .back { fill: var(--taken); opacity: 0.5; }
+.seat.sel .cushion { stroke: var(--select); stroke-width: 2.6; }
+.seat.sel .ring { stroke: var(--select); }
+.seat .ring { fill: none; stroke: transparent; stroke-width: 1.4; }
+.seat:not(.off):hover .cushion { stroke-width: 2.4; }
+.seatcode { font-family: var(--font-mono); font-size: 4.6px; pointer-events: none; fill: var(--muted); }
+
+/* Side panel */
+.side { display: grid; gap: 12px; min-width: 0; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px; display: grid; gap: 10px; min-width: 0; }
+.card h3 { margin: 0; font-family: var(--font-display); font-size: 1rem; }
+.seatbig { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.seatbig .code { font-family: var(--font-mono); font-size: 1.5rem; font-weight: 500; }
+.chip { font-size: 0.75rem; padding: 2px 8px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+.chip.free { color: var(--free); } .chip.mine { color: var(--accent); } .chip.taken, .chip.partial { color: var(--muted); } .chip.ded, .chip.dedmine { color: var(--dedicated); } .chip.off { color: var(--muted); }
+.kv { display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; font-size: 0.88rem; margin: 0; }
+.kv dt { color: var(--muted); } .kv dd { margin: 0; min-width: 0; }
+.btns { display: flex; flex-wrap: wrap; gap: 8px; }
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 8px 12px; font-weight: 500; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--surface); }
+.btn.ded { border-color: var(--dedicated); color: var(--dedicated); }
+.btn:disabled { opacity: 0.45; cursor: default; }
+.hint { font-size: 0.82rem; color: var(--muted); margin: 0; }
+.empty { font-size: 0.88rem; color: var(--muted); margin: 0; }
+.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.list li { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; font-size: 0.88rem; }
+.list li button { border: 0; background: none; color: var(--accent); padding: 2px 4px; font-size: 0.82rem; }
+.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.num { width: 4.2rem; border: 1px solid var(--line); border-radius: 8px; padding: 7px 8px; background: var(--surface); }
+.assign { display: grid; gap: 6px; }
+.assign .a { display: grid; grid-template-columns: 3.4rem 1fr; gap: 8px; align-items: center; position: relative; }
+.assign input { border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; background: var(--surface); width: 100%; min-width: 0; }
+.picker { position: absolute; left: 3.9rem; right: 0; top: 100%; z-index: 5; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 6px 18px rgba(0,0,0,.12); list-style: none; margin: 4px 0 0; padding: 4px; }
+.picker li button { width: 100%; text-align: left; border: 0; background: none; padding: 6px 8px; border-radius: 6px; display: flex; gap: 8px; align-items: center; }
+.picker li button:hover { background: var(--bg); }
+.picker img { width: 20px; height: 20px; border-radius: 50%; }
+
+/* Settings strip */
+.settings { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px; display: grid; gap: 12px; }
+.settings h2 { margin: 0; font-family: var(--font-display); font-size: 1rem; }
+.setgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 14px 22px; }
+.setting { display: grid; gap: 6px; min-width: 0; }
+.setting p { margin: 0; font-size: 0.8rem; color: var(--muted); }
+.oid { font-family: var(--font-mono); font-size: 0.72rem; color: var(--dedicated); }
+.toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--surface); padding: 9px 16px; border-radius: 999px; font-size: 0.88rem; box-shadow: 0 6px 20px rgba(0,0,0,.2); z-index: 20; max-width: calc(100% - 32px); }
+footer { font-size: 0.8rem; color: var(--muted); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="bar">
+    <div class="brand">
+      <h1>Office seat booking</h1>
+      <p>Prototype built from requirements v0.2 · draft floor plan · includes simulated bookings · not the real system</p>
+    </div>
+    <div class="who">
+      <span id="modePill" class="mode-pill">Connecting…</span>
+      <img id="meAvatar" alt="" hidden>
+      <span id="meName" class="muted"></span>
+    </div>
+  </header>
+
+  <div class="controls">
+    <div class="field" style="min-width:0;flex:1 1 22rem">
+      <span class="label" id="daysLabel">Day</span>
+      <div class="days" id="days" role="group" aria-labelledby="daysLabel"></div>
+    </div>
+    <div class="field" id="slotField">
+      <span class="label">Time</span>
+      <div class="seg" role="group" aria-label="Time of day">
+        <button type="button" id="slotDay" aria-pressed="true">Full day</button>
+        <button type="button" id="slotAm" aria-pressed="false">Morning</button>
+        <button type="button" id="slotPm" aria-pressed="false">Afternoon</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="work">
+    <section class="mapcard" aria-labelledby="mapTitle">
+      <div class="maphead">
+        <h2 id="mapTitle">Floor map</h2>
+        <div class="stats" id="stats"></div>
+      </div>
+      <div class="mapwrap"><svg id="map" viewBox="70 52 1320 470" role="img" aria-label="Office floor map with selectable seats"></svg></div>
+      <div class="legend">
+        <span><i class="sw" style="border-color:var(--free);background:var(--surface)"></i>Free</span>
+        <span><i class="sw" style="border-color:var(--accent);background:var(--accent)"></i>Yours</span>
+        <span><i class="sw" style="border-color:var(--taken);background:var(--taken)"></i>Taken</span>
+        <span><i class="sw" style="border-color:var(--dedicated);background:repeating-linear-gradient(135deg,var(--dedicated) 0 2px,transparent 2px 4px)"></i>Dedicated</span>
+        <span><i class="sw" style="border-color:var(--select)"></i>Selected</span>
+        <span><i class="sw" style="border-color:var(--taken);border-style:dashed"></i>Not bookable in this setting</span>
+      </div>
+    </section>
+
+    <aside class="side">
+      <div class="card" id="seatCard" aria-live="polite"></div>
+
+      <div class="card">
+        <h3>Book together</h3>
+        <p class="hint">Find free seats next to each other for your team, then name who sits where.</p>
+        <div class="row">
+          <label for="teamSize" class="muted">People</label>
+          <input id="teamSize" class="num" type="number" min="2" max="12" value="4">
+          <button type="button" class="btn" id="findBtn">Find seats together</button>
+        </div>
+        <div id="teamBox"></div>
+      </div>
+
+      <div class="card">
+        <h3>My bookings</h3>
+        <ul class="list" id="myList"></ul>
+      </div>
+    </aside>
+  </div>
+
+  <section class="settings" aria-labelledby="setTitle">
+    <h2 id="setTitle">Open questions, as switches</h2>
+    <p class="hint">These are undecided in the spec. Flip them to see how each answer would change the app. They change this page only, for you.</p>
+    <div class="setgrid">
+      <div class="setting">
+        <span class="label">Booking slot size <span class="oid">O-1</span></span>
+        <div class="seg" role="group" aria-label="Booking slot size">
+          <button type="button" id="optSlotsDay" aria-pressed="true">Full days only</button>
+          <button type="button" id="optSlotsHalf" aria-pressed="false">Half days</button>
+        </div>
+        <p>Tolga proposed 4-hour blocks; hourly is the third option and not shown here.</p>
+      </div>
+      <div class="setting">
+        <span class="label">Bookable part of the floor <span class="oid">O-12</span></span>
+        <div class="seg" role="group" aria-label="Bookable part of the floor">
+          <button type="button" id="optAreaEast" aria-pressed="true">East (≈ 92)</button>
+          <button type="button" id="optAreaAll" aria-pressed="false">Whole floor (≈ 168)</button>
+        </div>
+        <p>The September slide writes “VISMA” east of the red line. Not confirmed.</p>
+      </div>
+      <div class="setting">
+        <span class="label">Dedicated seat on owner's day off <span class="oid">O-2</span></span>
+        <div class="seg" role="group" aria-label="Dedicated seat rule">
+          <button type="button" id="optDedRelease" aria-pressed="true">Owner can release it</button>
+          <button type="button" id="optDedLocked" aria-pressed="false">Always reserved</button>
+        </div>
+        <p>Who assigns dedicated seats is also open. Here, page editors can.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    Seat codes are placeholders (<span class="mono">A-</span> east, <span class="mono">B-</span> west; O-13). Desk positions are traced from a low-resolution slide image, so expect small differences from the real floor. Meeting rooms are out of scope (C-1).
+    This shareable copy keeps bookings in each person's own browser, so people do not see each other's bookings. The simulated bookings start from the day you open it: busy today and the next workday, quieter after that.
+  </footer>
+</div>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+(function () {
+  "use strict";
+  const SVGNS = "http://www.w3.org/2000/svg";
+
+  // ---------- Floor geometry (coordinates traced from the 1431 x 534 px plan image) ----------
+  const SEATS = [];
+  const BLOCKS = [];
+  let eastN = 0, westN = 0;
+  function code(part) { return part === "east" ? "A-" + String(++eastN).padStart(2, "0") : "B-" + String(++westN).padStart(2, "0"); }
+  // Block of desks with seats on the left and right of a desk column: ys = seat rows
+  function vblock(cx, ys, part, row) {
+    const id = "blk" + BLOCKS.length, seats = [];
+    for (const y of ys) seats.push({ x: cx - 21, y, face: "R" });
+    for (const y of ys) seats.push({ x: cx + 21, y, face: "L" });
+    BLOCKS.push({ id, row, part, desk: { x: cx - 13, y: ys[0] - 11, w: 26, h: ys[ys.length - 1] - ys[0] + 22 }, seats: seats.map(s => addSeat(s, part, id)) });
+  }
+  // Block with seats above and below a desk row: xs = seat columns
+  function hblock(xs, yTop, yBot, part, row, rot, cx, cy) {
+    const id = "blk" + BLOCKS.length, seats = [];
+    if (yTop != null) for (const x of xs) seats.push({ x, y: yTop, face: "D" });
+    if (yBot != null) for (const x of xs) seats.push({ x, y: yBot, face: "U" });
+    const dy1 = yTop != null ? yTop + 9 : yBot - 22, dy2 = yBot != null ? yBot - 9 : yTop + 22;
+    BLOCKS.push({ id, row, part, rot, cx, cy, desk: { x: xs[0] - 11, y: dy1, w: xs[xs.length - 1] - xs[0] + 22, h: dy2 - dy1 }, seats: seats.map(s => addSeat(Object.assign(s, { rot, cx, cy }), part, id)) });
+  }
+  function addSeat(s, part, block) { const seat = Object.assign({ id: code(part), part, block }, s); SEATS.push(seat); return seat; }
+
+  // East part first so A-codes follow a walking order: north row, bump-out, wedge, south row
+  [662, 727, 791].forEach(cx => vblock(cx, [118, 138], "east", "eN"));
+  [897, 962, 1027, 1092].forEach(cx => vblock(cx, [99, 121, 143], "east", "eB"));
+  hblock([1268, 1290], null, 236, "east", "eW0", 27, 1279, 225);
+  [[1250, 273], [1223, 328], [1206, 383]].forEach(([cx, cy], i) => hblock([cx - 22, cx, cx + 22], cy - 17, cy + 17, "east", "eW" + (i + 1), 27, cx, cy));
+  [721, 786, 856, 926, 991, 1056].forEach(cx => vblock(cx, [425, 449, 473], "east", "eS"));
+  // West part
+  [203, 268, 333, 399, 464, 529, 595].forEach(cx => vblock(cx, [118, 138], "west", "wN"));
+  hblock([118, 138], null, 207, "west", "wW1");
+  hblock([116, 142, 168], 230, 270, "west", "wW2");
+  hblock([116, 142, 168], 296, 336, "west", "wW3");
+  hblock([108, 138], 358, null, "west", "wW4");
+  [203, 268, 333, 444, 509].forEach(cx => vblock(cx, [432, 453], "west", "wS"));
+  [590, 655].forEach(cx => vblock(cx, [425, 449, 473], "west", "wS"));
+  const SEAT_BY_ID = Object.fromEntries(SEATS.map(s => [s.id, s]));
+
+  const ROOMS = [
+    [87, 87, 80, 95, "Meeting 19.8 m²"], [87, 382, 80, 106, "Office 21.7 m²"],
+    [240, 195, 43, 135, "Hub room"], [240, 332, 43, 50, "Storage"], [283, 195, 62, 165, "Lounge 26.8 m²"],
+    [347, 240, 53, 90, "Wardrobe"], [350, 360, 84, 22, "Coffee corner"],
+    [434, 195, 53, 37, "Silent"], [487, 195, 53, 37, "Silent"], [540, 195, 53, 37, "Silent"], [593, 195, 54, 37, "Silent"],
+    [694, 195, 108, 42, "Wardrobe 12.3 m²"],
+    [804, 195, 52, 42, "Silent"], [856, 195, 52, 42, "Silent"], [908, 195, 52, 42, "Silent"], [960, 195, 54, 42, "Silent"],
+    [1014, 195, 136, 95, "Coffee corner · Lounge"], [921, 295, 40, 87, "Wardrobe"], [961, 295, 135, 87, "Meeting room 31.5 m²"],
+    [1098, 420, 65, 88, "Office ≈ 26 m²"], [1170, 72, 120, 80, "Lounge corner"]
+  ];
+  const CORE = [[434, 234, 260, 148, "WC · stairs"], [694, 240, 153, 140, "Lifts"], [847, 238, 74, 57, "Stairs"]];
+  const OUTLINE = "83,83 841,83 841,65 1158,65 1365,155 1210,508 537,508 537,488 83,488 Z";
+
+  // ---------- State ----------
+  const S = {
+    date: null, slot: "day", slotSize: "day", area: "east", dedRule: "release",
+    sel: null, team: [], teamAssign: {},
+    dayBookings: {}, myBookings: [], dedications: {}, releases: {},
+    me: { id: null, name: "", avatarUrl: "" }, canWrite: true, canEdit: false, mode: "loading"
+  };
+  try { const saved = JSON.parse(localStorage.getItem("seatproto.settings") || "{}"); Object.assign(S, pick(saved, ["slotSize", "area", "dedRule"])); } catch (e) {}
+  function pick(o, ks) { const r = {}; for (const k of ks) if (o[k]) r[k] = o[k]; return r; }
+  function saveSettings() { try { localStorage.setItem("seatproto.settings", JSON.stringify({ slotSize: S.slotSize, area: S.area, dedRule: S.dedRule })); } catch (e) {} }
+
+  // ---------- Dates ----------
+  function iso(d) { return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+  function workdays(n) { const out = []; const d = new Date(); d.setHours(12, 0, 0, 0); while (out.length < n) { const wd = d.getDay(); if (wd !== 0 && wd !== 6) out.push(new Date(d)); d.setDate(d.getDate() + 1); } return out; }
+  const DAYS = workdays(10);
+  S.date = iso(DAYS[0]);
+  const fmtDay = d => d.toLocaleDateString("en-GB", { weekday: "short" });
+  const fmtLong = s => new Date(s + "T12:00:00").toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
+
+  // ---------- Storage backends ----------
+  // Shared: claude.use("db"). Local fallback keeps the same shape in this browser only.
+  // Offline copies get simulated bookings as [workday index from today, seat, slots, label]; the shared version keeps its data in db.
+  const LOCAL_SEED = [[0,"A-32",["am","pm"],"Simulated booking"],[0,"A-33",["am","pm"],"Simulated booking"],[0,"A-12",["am","pm"],"Simulated booking"],[0,"A-38",["am","pm"],"Simulated booking"],[0,"A-41",["am","pm"],"Simulated booking"],[0,"A-44",["am","pm"],"Simulated booking"],[0,"A-66",["am","pm"],"Simulated booking"],[0,"A-63",["am","pm"],"Simulated booking"],[0,"A-90",["am"],"Simulated team booking"],[0,"A-88",["am","pm"],"Simulated team booking"],[0,"A-76",["am","pm"],"Simulated team booking"],[0,"A-79",["am","pm"],"Simulated team booking"],[0,"A-91",["am","pm"],"Simulated team booking"],[0,"A-92",["am","pm"],"Simulated team booking"],[0,"A-78",["am","pm"],"Simulated team booking"],[0,"A-75",["am","pm"],"Simulated team booking"],[0,"A-81",["am","pm"],"Simulated booking"],[0,"A-82",["am","pm"],"Simulated booking"],[0,"B-10",["am","pm"],"Simulated booking"],[0,"B-12",["am","pm"],"Simulated booking"],[0,"B-71",["am","pm"],"Simulated booking"],[0,"B-49",["am","pm"],"Simulated booking"],[0,"B-52",["am"],"Simulated booking"],[0,"B-41",["am","pm"],"Simulated team booking"],[0,"B-37",["am","pm"],"Simulated team booking"],[0,"B-42",["am","pm"],"Simulated team booking"],[0,"B-20",["am","pm"],"Simulated team booking"],[0,"B-17",["am","pm"],"Simulated team booking"],[0,"B-18",["am","pm"],"Simulated team booking"],[0,"B-08",["am","pm"],"Simulated booking"],[0,"B-38",["am","pm"],"Simulated team booking"],[0,"B-39",["am","pm"],"Simulated team booking"],[0,"B-27",["am","pm"],"Simulated booking"],[1,"A-23",["am","pm"],"Simulated booking"],[1,"A-22",["am","pm"],"Simulated booking"],[1,"A-79",["am","pm"],"Simulated booking"],[1,"A-91",["am","pm"],"Simulated booking"],[1,"A-87",["am","pm"],"Simulated booking"],[1,"A-01",["am","pm"],"Simulated team booking"],[1,"A-02",["am","pm"],"Simulated team booking"],[1,"A-04",["am","pm"],"Simulated team booking"],[1,"A-38",["am","pm"],"Simulated booking"],[1,"A-37",["am","pm"],"Simulated booking"],[1,"A-84",["am"],"Simulated team booking"],[1,"A-08",["am","pm"],"Simulated team booking"],[1,"A-05",["am","pm"],"Simulated team booking"],[1,"A-07",["am","pm"],"Simulated team booking"],[1,"A-86",["am","pm"],"Simulated team booking"],[1,"A-81",["am","pm"],"Simulated team booking"],[1,"A-82",["am","pm"],"Simulated team booking"],[1,"A-47",["am","pm"],"Simulated booking"],[1,"B-60",["am","pm"],"Simulated booking"],[1,"B-73",["am","pm"],"Simulated team booking"],[1,"B-76",["am","pm"],"Simulated team booking"],[1,"B-29",["am","pm"],"Simulated booking"],[1,"B-01",["am","pm"],"Simulated booking"],[1,"B-09",["am","pm"],"Simulated booking"],[1,"B-12",["am","pm"],"Simulated booking"],[1,"B-27",["am","pm"],"Simulated booking"],[1,"B-20",["am","pm"],"Simulated booking"],[1,"B-18",["am","pm"],"Simulated booking"],[1,"B-71",["pm"],"Simulated team booking"],[1,"B-72",["am","pm"],"Simulated team booking"],[1,"B-14",["am","pm"],"Simulated team booking"],[1,"B-15",["am","pm"],"Simulated team booking"],[1,"B-13",["am"],"Simulated team booking"],[2,"A-65",["am","pm"],"Simulated booking"],[2,"A-70",["am","pm"],"Simulated booking"],[2,"A-73",["am","pm"],"Simulated booking"],[2,"A-22",["am","pm"],"Simulated booking"],[2,"A-19",["am"],"Simulated booking"],[2,"A-85",["am","pm"],"Simulated team booking"],[2,"A-82",["am","pm"],"Simulated team booking"],[2,"A-81",["am","pm"],"Simulated team booking"],[2,"A-45",["am","pm"],"Simulated booking"],[2,"B-65",["am","pm"],"Simulated booking"],[2,"B-67",["am","pm"],"Simulated booking"],[2,"B-29",["am","pm"],"Simulated booking"],[2,"B-30",["am","pm"],"Simulated booking"],[2,"B-19",["am"],"Simulated team booking"],[2,"B-20",["am","pm"],"Simulated team booking"],[2,"B-18",["am","pm"],"Simulated team booking"],[2,"B-17",["am","pm"],"Simulated team booking"],[3,"A-03",["am"],"Simulated booking"],[3,"A-04",["am","pm"],"Simulated booking"],[3,"A-38",["am","pm"],"Simulated booking"],[3,"A-78",["am","pm"],"Simulated booking"],[3,"A-67",["am","pm"],"Simulated team booking"],[3,"A-68",["am","pm"],"Simulated team booking"],[3,"A-66",["am","pm"],"Simulated team booking"],[3,"A-69",["am"],"Simulated booking"],[3,"A-73",["am","pm"],"Simulated booking"],[3,"B-69",["am","pm"],"Simulated team booking"],[3,"B-65",["am","pm"],"Simulated team booking"],[3,"B-67",["am","pm"],"Simulated team booking"],[3,"B-47",["am","pm"],"Simulated booking"],[3,"B-45",["am","pm"],"Simulated booking"],[3,"B-44",["am","pm"],"Simulated booking"],[3,"B-43",["am","pm"],"Simulated booking"],[3,"B-56",["am"],"Simulated booking"],[4,"A-44",["am","pm"],"Simulated booking"],[4,"A-58",["am","pm"],"Simulated booking"],[4,"A-61",["am","pm"],"Simulated booking"],[5,"A-53",["am","pm"],"Simulated team booking"],[5,"A-55",["am"],"Simulated team booking"],[5,"A-52",["am","pm"],"Simulated team booking"],[5,"A-62",["pm"],"Simulated booking"],[5,"B-28",["am","pm"],"Simulated booking"],[6,"A-09",["am"],"Simulated booking"],[6,"A-12",["pm"],"Simulated booking"],[7,"A-29",["am","pm"],"Simulated booking"],[7,"A-57",["am","pm"],"Simulated team booking"],[7,"A-62",["pm"],"Simulated team booking"],[7,"A-59",["am","pm"],"Simulated team booking"],[7,"B-05",["am","pm"],"Simulated booking"],[8,"A-79",["am","pm"],"Simulated team booking"],[8,"A-80",["am","pm"],"Simulated team booking"],[8,"A-75",["am","pm"],"Simulated team booking"],[8,"A-76",["am","pm"],"Simulated team booking"],[8,"B-28",["am","pm"],"Simulated booking"],[9,"A-41",["am","pm"],"Simulated team booking"],[9,"A-44",["am","pm"],"Simulated team booking"],[9,"A-39",["am","pm"],"Simulated team booking"],[9,"A-42",["am","pm"],"Simulated team booking"],[9,"B-50",["am","pm"],"Simulated booking"]];
+  const local = {
+    data: { bookings: {}, dedications: {}, releases: {} }, subs: new Set(),
+    load() {
+      try { const d = JSON.parse(localStorage.getItem("seatproto.data") || "null"); if (d) { this.data = d; return; } } catch (e) {}
+      if (!LOCAL_SEED) return;
+      for (const [i, seat, slots, label] of LOCAL_SEED) {
+        if (!DAYS[i]) continue;
+        const date = iso(DAYS[i]);
+        for (const sl of slots) this.data.bookings[date + "_" + sl + "_" + seat] = { seat, date, slot: sl, by: "sim", bookedBy: "sim", label, sim: true };
+      }
+    },
+    save() { try { localStorage.setItem("seatproto.data", JSON.stringify(this.data)); } catch (e) {} this.subs.forEach(f => f()); render(); }
+  };
+  let db = null, user = null, unsubDay = [], unsubMine = null, unsubDed = null;
+
+  const store = {
+    watchDay(date) {
+      unsubDay.forEach(u => u()); unsubDay = [];
+      if (db) {
+        unsubDay.push(db.collection("bookings").where("date", "==", date).onSnapshot(snap => {
+          const m = {}; snap.docs.forEach(d => { m[d.id] = d.data(); }); S.dayBookings = m; render();
+        }, onDbError));
+        unsubDay.push(db.collection("releases").where("date", "==", date).onSnapshot(snap => {
+          const m = {}; snap.docs.forEach(d => { const x = d.data(); m[x.seat] = x; }); S.releases = m; render();
+        }, onDbError));
+      } else {
+        const f = () => {
+          const m = {}, r = {};
+          for (const [k, v] of Object.entries(local.data.bookings)) if (v.date === date) m[k] = v;
+          for (const v of Object.values(local.data.releases)) if (v.date === date) r[v.seat] = v;
+          S.dayBookings = m; S.releases = r;
+        };
+        f(); local.subs.add(f); unsubDay.push(() => local.subs.delete(f));
+      }
+    },
+    watchStatic() {
+      if (db) {
+        if (S.me.id) unsubMine = db.collection("bookings").where("by", "==", S.me.id).onSnapshot(snap => {
+          S.myBookings = snap.docs.map(d => Object.assign({ _id: d.id }, d.data())); render();
+        }, onDbError);
+        unsubDed = db.collection("dedications").onSnapshot(snap => {
+          const m = {}; snap.docs.forEach(d => { const x = d.data(); m[x.seat] = x; }); S.dedications = m; render();
+        }, onDbError);
+      } else {
+        const f = () => {
+          S.myBookings = Object.entries(local.data.bookings).filter(([, v]) => v.by === S.me.id).map(([k, v]) => Object.assign({ _id: k }, v));
+          S.dedications = Object.assign({}, local.data.dedications);
+        };
+        f(); local.subs.add(f);
+      }
+    },
+    async claim(docId, body) {
+      if (!db) { if (local.data.bookings[docId]) return false; local.data.bookings[docId] = body; local.save(); return true; }
+      const ref = db.collection("bookings").doc(docId);
+      const lease = await ref.acquire({ holder: S.me.id || "anon", ttlMs: 4000 });
+      if (!lease.acquired) return false;
+      const cur = await ref.get();
+      if (cur.exists && cur.data() && cur.data().by) return false;
+      await ref.set(body); return true;
+    },
+    async remove(docId) { if (!db) { delete local.data.bookings[docId]; local.save(); return; } await db.collection("bookings").doc(docId).delete(); },
+    async setRelease(seat, date, on) {
+      const id = date + "_" + seat;
+      if (!db) { if (on) local.data.releases[id] = { seat, date, by: S.me.id }; else delete local.data.releases[id]; local.save(); return; }
+      const ref = db.collection("releases").doc(id);
+      if (on) await ref.set({ seat, date, by: S.me.id }); else await ref.delete();
+    },
+    async setDedication(seat, owner) {
+      if (!db) { if (owner) local.data.dedications[seat] = { seat, owner, label: owner === S.me.id ? "" : owner }; else delete local.data.dedications[seat]; local.save(); return; }
+      const ref = db.collection("dedications").doc(seat);
+      if (owner) await ref.set({ seat, owner }); else await ref.delete();
+    }
+  };
+  function onDbError(e) { if (e && (e.code === "revoked" || e.code === "not_granted")) { S.mode = "readonly"; render(); } }
+
+  // ---------- Seat status ----------
+  function slotsNow() { return S.slotSize === "day" || S.slot === "day" ? ["am", "pm"] : [S.slot]; }
+  function bookingsFor(seatId) { return slotsNow().map(sl => S.dayBookings[S.date + "_" + sl + "_" + seatId]).filter(Boolean); }
+  function status(seat) {
+    if (S.area === "east" && seat.part !== "east") return "off";
+    const ded = S.dedications[seat.id];
+    if (ded) {
+      const released = S.dedRule === "release" && S.releases[seat.id];
+      if (!released) return ded.owner === S.me.id ? "dedmine" : "ded";
+    }
+    const bs = bookingsFor(seat.id);
+    if (bs.some(b => b.by === S.me.id)) return "mine";
+    if (bs.length === 0) return "free";
+    return bs.length < slotsNow().length ? "partial" : "taken";
+  }
+  const STATUS_TEXT = { free: "Free", mine: "Booked by you", taken: "Taken", partial: "Half taken", ded: "Dedicated", dedmine: "Your dedicated seat", off: "Not bookable" };
+
+  // ---------- People ----------
+  let PROFILES = {};
+  async function resolve(ids) {
+    ids = Array.from(new Set(ids.filter(id => id && id !== "sim")));
+    if (!user || !ids.length) return;
+    const ps = await user.profiles(ids);
+    let changed = false;
+    for (const id of ids) if (!PROFILES[id] || PROFILES[id].name !== ps[id].name) { PROFILES[id] = ps[id]; changed = true; }
+    if (changed) render();
+  }
+  // Simulated bookings carry no real person: each gets a stable made-up name, always marked "(simulated)".
+  const SIM_NAMES = ["Jānis Ozols", "Laura Ozola", "Mārtiņš Kalniņš", "Elīna Kalniņa", "Kristaps Bērziņš", "Agnese Bērziņa",
+    "Edgars Liepiņš", "Sanita Liepiņa", "Raimonds Krūmiņš", "Dace Krūmiņa", "Kārlis Zariņš", "Zane Zariņa", "Andris Vītols",
+    "Linda Vītola", "Toms Jansons", "Ilze Jansone", "Roberts Pētersons", "Evija Pētersone", "Gints Siliņš", "Marta Siliņa",
+    "Artūrs Eglītis", "Kristīne Eglīte", "Mareks Kļaviņš", "Santa Kļaviņa", "Ola Hansen", "Kari Johansen", "Erik Olsen", "Ingrid Larsen"];
+  function hash(str) { let h = 0; for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0; return h; }
+  function simName(seat, date) { return SIM_NAMES[(hash(seat || "") + hash(date || "") % 3) % SIM_NAMES.length]; }
+  function personName(id, label, seat, date) {
+    if (id === "sim") return simName(seat, date) + " (simulated)";
+    if (!id && label) return label;
+    if (id === S.me.id) return "you";
+    if (!db) return label || "a colleague";
+    const p = PROFILES[id]; return (p && p.name) || "Someone";
+  }
+
+  // ---------- Rendering ----------
+  const $ = id => document.getElementById(id);
+  const map = $("map");
+  function el(tag, attrs, parent) { const e = document.createElementNS(SVGNS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
+
+  function drawStatic() {
+    const defs = el("defs", {}, map);
+    const hatch = el("pattern", { id: "dedHatch", width: 3, height: 3, patternUnits: "userSpaceOnUse", patternTransform: "rotate(45)" }, defs);
+    el("rect", { width: 3, height: 3, fill: "var(--surface)" }, hatch);
+    el("rect", { width: 1.2, height: 3, fill: "var(--dedicated)" }, hatch);
+    const half = el("linearGradient", { id: "halfTaken" }, defs);
+    el("stop", { offset: "50%", "stop-color": "var(--taken)" }, half); el("stop", { offset: "50%", "stop-color": "var(--surface)" }, half);
+
+    el("polygon", { points: OUTLINE.replace(" Z", ""), class: "floorfill" }, map);
+    const off = el("g", { id: "offzone" }, map);
+    el("polygon", { points: "83,83 636,83 636,232 694,232 694,508 537,508 537,488 83,488", class: "offzone" }, off);
+    for (const [x, y, w, h, t] of ROOMS) { const g = el("g", { class: "room" }, map); el("rect", { x, y, width: w, height: h, rx: 2 }, g); const tx = el("text", { x: x + 4, y: y + 11 }, g); tx.textContent = t; }
+    for (const [x, y, w, h, t] of CORE) { const g = el("g", { class: "core" }, map); el("rect", { x, y, width: w, height: h, rx: 2 }, g); const tx = el("text", { x: x + w / 2, y: y + h / 2 + 3, "text-anchor": "middle" }, g); tx.textContent = t; }
+    el("polygon", { points: OUTLINE.replace(" Z", ""), class: "wall" }, map);
+    el("line", { x1: 636, y1: 83, x2: 636, y2: 232, class: "divider" }, map);
+    el("line", { x1: 694, y1: 382, x2: 694, y2: 508, class: "divider" }, map);
+    const dl = el("text", { x: 641, y: 80, class: "divlabel" }, map); dl.textContent = "dividing line (O-12)";
+
+    const seatLayer = el("g", { id: "seats" }, map);
+    for (const b of BLOCKS) {
+      const g = el("g", b.rot ? { transform: "rotate(" + b.rot + " " + b.cx + " " + b.cy + ")" } : {}, seatLayer);
+      el("rect", { x: b.desk.x, y: b.desk.y, width: b.desk.w, height: b.desk.h, rx: 1.5, class: "desk" }, g);
+      for (const s of b.seats) {
+        const sg = el("g", { class: "seat", "data-id": s.id, tabindex: "0", role: "button" }, g);
+        const t = el("title", {}, sg); t.textContent = s.id; s.titleNode = t;
+        el("circle", { cx: s.x, cy: s.y, r: 10, class: "ring" }, sg);
+        el("rect", { x: s.x - 7, y: s.y - 6, width: 14, height: 12, rx: 2.5, class: "cushion" }, sg);
+        const bk = { R: [s.x - 9.5, s.y - 6, 3, 12], L: [s.x + 6.5, s.y - 6, 3, 12], D: [s.x - 7, s.y - 8.5, 14, 3], U: [s.x - 7, s.y + 5.5, 14, 3] }[s.face];
+        el("rect", { x: bk[0], y: bk[1], width: bk[2], height: bk[3], rx: 1, class: "back" }, sg);
+        s.node = sg;
+      }
+    }
+    seatLayer.addEventListener("click", e => { const g = e.target.closest(".seat"); if (g) selectSeat(g.getAttribute("data-id")); });
+    const wrap = map.parentNode, tip = document.createElement("div");
+    tip.className = "tip"; tip.hidden = true; wrap.appendChild(tip);
+    const showTip = g => {
+      const s = SEAT_BY_ID[g.getAttribute("data-id")], r = g.getBoundingClientRect(), w = wrap.getBoundingClientRect();
+      tip.textContent = ""; const b = document.createElement("b"); b.textContent = s.id; tip.append(b, document.createTextNode(whoText(s)));
+      tip.style.left = (r.left - w.left + wrap.scrollLeft + r.width / 2) + "px"; tip.style.top = (r.top - w.top + wrap.scrollTop) + "px"; tip.hidden = false;
+    };
+    seatLayer.addEventListener("pointerover", e => { const g = e.target.closest(".seat"); if (g) showTip(g); });
+    seatLayer.addEventListener("pointerout", e => { const to = e.relatedTarget; if (!to || !to.closest || !to.closest(".seat")) tip.hidden = true; });
+    seatLayer.addEventListener("focusin", e => { const g = e.target.closest(".seat"); if (g) showTip(g); });
+    seatLayer.addEventListener("focusout", () => { tip.hidden = true; });
+    seatLayer.addEventListener("keydown", e => { if ((e.key === "Enter" || e.key === " ") && e.target.classList.contains("seat")) { e.preventDefault(); selectSeat(e.target.getAttribute("data-id")); } });
+  }
+
+  function renderDays() {
+    const box = $("days"); box.textContent = "";
+    for (const d of DAYS) {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "day"; b.setAttribute("aria-pressed", String(iso(d) === S.date));
+      b.innerHTML = "<small></small><b></b><small></small>";
+      b.children[0].textContent = fmtDay(d); b.children[1].textContent = d.getDate(); b.children[2].textContent = d.toLocaleDateString("en-GB", { month: "short" });
+      b.addEventListener("click", () => { S.date = iso(d); S.team = []; S.teamAssign = {}; store.watchDay(S.date); render(); });
+      box.appendChild(b);
+    }
+  }
+
+  function whoText(s) {
+    const st = status(s);
+    if (st === "off") return "Not bookable in this setting";
+    if (st === "free") return "Free";
+    if (st === "ded" || st === "dedmine") { const d = S.dedications[s.id]; return st === "dedmine" ? "Your dedicated seat" : "Dedicated to " + personName(d.owner, d.label); }
+    const names = Array.from(new Set(bookingsFor(s.id).map(b => personName(b.by, b.label, b.seat, b.date)))).map(n => n === "you" ? "You" : n);
+    return names.join(", ") + (st === "partial" ? " · half day" : "");
+  }
+
+  function render() {
+    // controls
+    document.querySelectorAll("#days .day").forEach((b, i) => b.setAttribute("aria-pressed", String(iso(DAYS[i]) === S.date)));
+    const half = S.slotSize === "half";
+    if (!half) S.slot = "day";
+    $("slotAm").disabled = !half; $("slotPm").disabled = !half;
+    $("slotDay").setAttribute("aria-pressed", String(S.slot === "day")); $("slotAm").setAttribute("aria-pressed", String(S.slot === "am")); $("slotPm").setAttribute("aria-pressed", String(S.slot === "pm"));
+    $("optSlotsDay").setAttribute("aria-pressed", String(!half)); $("optSlotsHalf").setAttribute("aria-pressed", String(half));
+    $("optAreaEast").setAttribute("aria-pressed", String(S.area === "east")); $("optAreaAll").setAttribute("aria-pressed", String(S.area === "all"));
+    $("optDedRelease").setAttribute("aria-pressed", String(S.dedRule === "release")); $("optDedLocked").setAttribute("aria-pressed", String(S.dedRule === "locked"));
+    $("offzone").style.display = S.area === "east" ? "" : "none";
+
+    // seats
+    const counts = { free: 0, taken: 0, mine: 0, ded: 0, total: 0 };
+    const teamSet = new Set(S.team);
+    for (const s of SEATS) {
+      const st = status(s);
+      s.node.setAttribute("class", "seat " + st + (S.sel === s.id || teamSet.has(s.id) ? " sel" : ""));
+      const who = whoText(s); s.node.setAttribute("aria-label", s.id + ", " + who); s.titleNode.textContent = s.id + " · " + who;
+      if (st !== "off") { counts.total++; if (st === "free") counts.free++; else if (st === "mine") counts.mine++; else if (st === "ded" || st === "dedmine") counts.ded++; else counts.taken++; }
+    }
+    $("stats").innerHTML = "";
+    [["Free", counts.free], ["Taken", counts.taken + counts.mine], ["Dedicated", counts.ded], ["Bookable", counts.total]].forEach(([k, v]) => { const sp = document.createElement("span"); sp.innerHTML = "<b></b> "; sp.firstChild.textContent = v; sp.appendChild(document.createTextNode(k.toLowerCase())); $("stats").appendChild(sp); });
+    $("mapTitle").textContent = "Floor map · " + fmtLong(S.date) + (S.slot === "am" ? " · morning" : S.slot === "pm" ? " · afternoon" : "");
+
+    renderSeatCard(); renderTeam(); renderMine();
+    const ids = []; Object.values(S.dayBookings).forEach(b => ids.push(b.by)); Object.values(S.dedications).forEach(d => ids.push(d.owner));
+    resolve(ids);
+  }
+
+  function renderSeatCard() {
+    const c = $("seatCard"); c.textContent = "";
+    if (!S.sel) {
+      const h = document.createElement("h3"); h.textContent = "Pick a seat"; c.appendChild(h);
+      const p = document.createElement("p"); p.className = "empty"; p.textContent = "Select any seat on the map to see who has it and to book it. Your own seats are filled blue."; c.appendChild(p);
+      return;
+    }
+    const s = SEAT_BY_ID[S.sel], st = status(s);
+    const head = document.createElement("div"); head.className = "seatbig";
+    head.innerHTML = '<span class="code"></span><span class="chip"></span>';
+    head.children[0].textContent = s.id; head.children[1].textContent = STATUS_TEXT[st]; head.children[1].classList.add(st);
+    c.appendChild(head);
+    const dl = document.createElement("dl"); dl.className = "kv"; c.appendChild(dl);
+    const add = (k, v) => { const dt = document.createElement("dt"), dd = document.createElement("dd"); dt.textContent = k; dd.textContent = v; dl.append(dt, dd); };
+    add("Area", s.part === "east" ? "East part" : "West part");
+    add("When", fmtLong(S.date) + (S.slot === "am" ? ", morning" : S.slot === "pm" ? ", afternoon" : ", full day"));
+    const ded = S.dedications[s.id];
+    if (ded) add("Dedicated to", personName(ded.owner, ded.label));
+    const bs = bookingsFor(s.id);
+    if (bs.length) {
+      const names = bs.map(b => personName(b.by, b.label, b.seat, b.date)), half = b => b.slot === "am" ? " (morning)" : " (afternoon)";
+      add("Booked by", new Set(names).size === 1 ? names[0] + (bs.length < slotsNow().length ? half(bs[0]) : "") : bs.map((b, i) => names[i] + half(b)).join(", "));
+    }
+
+    const btns = document.createElement("div"); btns.className = "btns"; c.appendChild(btns);
+    const btn = (label, cls, fn, disabled) => { const b = document.createElement("button"); b.type = "button"; b.className = "btn " + (cls || ""); b.textContent = label; b.disabled = !!disabled; b.addEventListener("click", fn); btns.appendChild(b); return b; };
+    const ro = !S.canWrite || S.mode === "readonly";
+    if (st === "free" || st === "partial") btn(st === "partial" ? "Book the free half" : "Book this seat", "primary", () => bookSeats([{ seat: s.id, by: S.me.id }]), ro);
+    if (st === "mine") btn("Cancel my booking", "", () => cancelSeat(s.id), ro);
+    if (ded && ded.owner === S.me.id && S.dedRule === "release") {
+      if (S.releases[s.id]) btn("Take my seat back", "ded", () => store.setRelease(s.id, S.date, false).then(() => toast("Seat " + s.id + " is yours again")), ro || bookingsFor(s.id).some(b => b.by !== S.me.id));
+      else btn("Release for this day", "ded", () => store.setRelease(s.id, S.date, true).then(() => toast("Released " + s.id + " for " + fmtLong(S.date))), ro);
+    }
+    if (S.canEdit || !db) {
+      if (ded) btn("Remove dedication", "ded", () => store.setDedication(s.id, null).then(() => toast(s.id + " is bookable again")), ro);
+      else if (st !== "off") btn("Make it my dedicated seat", "ded", () => store.setDedication(s.id, S.me.id).then(() => toast(s.id + " is now dedicated to you")), ro);
+    }
+    if (ro) { const p = document.createElement("p"); p.className = "hint"; p.textContent = "You can look but not book: this page is shared with you read-only."; c.appendChild(p); }
+    else if (S.canEdit || !db) { const p = document.createElement("p"); p.className = "hint"; p.textContent = "Dedication controls show because you can edit this page. In the real app this would be an admin role (O-2, O-7)."; c.appendChild(p); }
+  }
+
+  // ---------- Booking actions ----------
+  async function bookSeats(list) {
+    const slots = slotsNow(); let ok = 0, lost = [];
+    for (const item of list) {
+      let got = 0;
+      for (const sl of slots) {
+        const id = S.date + "_" + sl + "_" + item.seat;
+        if (S.dayBookings[id]) continue;
+        const body = { seat: item.seat, date: S.date, slot: sl, by: item.by || S.me.id, bookedBy: S.me.id, at: new Date().toISOString() };
+        if (item.label) body.label = item.label;
+        try { if (await store.claim(id, body)) got++; } catch (e) { handleWriteError(e); return; }
+      }
+      if (got) ok++; else lost.push(item.seat);
+    }
+    if (lost.length) toast(lost.join(", ") + (lost.length > 1 ? " were" : " was") + " just taken by someone else. Pick another seat.");
+    else toast(ok === 1 ? "Booked " + list[0].seat + " for " + fmtLong(S.date) : "Booked " + ok + " seats for " + fmtLong(S.date));
+    S.team = []; S.teamAssign = {}; render();
+  }
+  async function cancelSeat(seatId) {
+    try {
+      for (const sl of slotsNow()) { const id = S.date + "_" + sl + "_" + seatId; const b = S.dayBookings[id]; if (b && (b.by === S.me.id || b.bookedBy === S.me.id)) await store.remove(id); }
+      toast("Cancelled " + seatId + " on " + fmtLong(S.date));
+    } catch (e) { handleWriteError(e); }
+  }
+  function handleWriteError(e) {
+    if (e && e.code === "invalid_argument") { S.canWrite = false; toast("This page is read-only for you, so the booking was not saved."); render(); }
+    else if (e && e.code === "quota_exceeded") toast("The prototype's storage is full. Cancel some old bookings and try again.");
+    else toast("Could not save. Check your connection and try again.");
+  }
+
+  // ---------- Book together ----------
+  function findTogether(n) {
+    const free = id => status(SEAT_BY_ID[id]) === "free";
+    const rows = {};
+    for (const b of BLOCKS) { if (S.area === "east" && b.part !== "east") continue; (rows[b.row] = rows[b.row] || []).push(b); }
+    let best = null;
+    for (const b of BLOCKS) { if (S.area === "east" && b.part !== "east") continue; const f = b.seats.filter(s => free(s.id)); if (f.length >= n && (!best || f.length < best.length)) best = f; }
+    if (best) return best.slice(0, n).map(s => s.id);
+    for (const r of Object.values(rows)) {
+      for (let i = 0; i < r.length; i++) { let acc = []; for (let j = i; j < r.length && acc.length < n; j++) acc = acc.concat(r[j].seats.filter(s => free(s.id))); if (acc.length >= n) return acc.slice(0, n).map(s => s.id); }
+    }
+    return null;
+  }
+  function renderTeam() {
+    const box = $("teamBox"); box.textContent = "";
+    if (!S.team.length) return;
+    const p = document.createElement("p"); p.className = "hint"; p.textContent = "Selected on the map. Name each person, or leave it as a seat held for your team."; box.appendChild(p);
+    const wrap = document.createElement("div"); wrap.className = "assign"; box.appendChild(wrap);
+    S.team.forEach((seatId, i) => {
+      const row = document.createElement("div"); row.className = "a";
+      const lab = document.createElement("label"); lab.className = "mono"; lab.textContent = seatId; lab.htmlFor = "as-" + seatId;
+      const inp = document.createElement("input"); inp.id = "as-" + seatId; inp.autocomplete = "off";
+      const a = S.teamAssign[seatId];
+      inp.placeholder = i === 0 ? "You" : (db && user ? "Search a colleague…" : "Name (optional)");
+      inp.value = a ? (a.id ? personName(a.id) : a.label || "") : "";
+      if (i === 0 && !a) inp.value = "";
+      inp.addEventListener("input", () => onAssignInput(seatId, inp, row));
+      inp.addEventListener("focus", () => onAssignInput(seatId, inp, row));
+      row.append(lab, inp); wrap.appendChild(row);
+    });
+    const btns = document.createElement("div"); btns.className = "btns"; box.appendChild(btns);
+    const bk = document.createElement("button"); bk.type = "button"; bk.className = "btn primary"; bk.textContent = "Book " + S.team.length + " seats"; bk.disabled = !S.canWrite || S.mode === "readonly";
+    bk.addEventListener("click", () => bookSeats(S.team.map((seat, i) => { const a = S.teamAssign[seat]; return a && a.id ? { seat, by: a.id } : a && a.label ? { seat, by: S.me.id, label: a.label } : { seat, by: S.me.id }; })));
+    const cl = document.createElement("button"); cl.type = "button"; cl.className = "btn"; cl.textContent = "Clear"; cl.addEventListener("click", () => { S.team = []; S.teamAssign = {}; render(); });
+    btns.append(bk, cl);
+  }
+  async function onAssignInput(seatId, inp, row) {
+    const q = inp.value.trim();
+    const old = row.querySelector(".picker"); if (old) old.remove();
+    if (!(db && user)) { S.teamAssign[seatId] = q ? { label: q } : undefined; return; }
+    S.teamAssign[seatId] = undefined;
+    const hits = await user.search(q);
+    if (document.activeElement !== inp) return;
+    const ul = document.createElement("ul"); ul.className = "picker";
+    hits.slice(0, 6).forEach(h => {
+      const li = document.createElement("li"); const b = document.createElement("button"); b.type = "button";
+      const img = document.createElement("img"); img.src = h.avatarUrl; img.alt = "";
+      const sp = document.createElement("span"); sp.textContent = h.isMe ? h.name + " (you)" : h.name;
+      b.append(img, sp);
+      b.addEventListener("mousedown", ev => { ev.preventDefault(); PROFILES[h.id] = h; S.teamAssign[seatId] = { id: h.id }; inp.value = h.name; ul.remove(); });
+      li.appendChild(b); ul.appendChild(li);
+    });
+    if (hits.length) row.appendChild(ul);
+    inp.addEventListener("blur", () => setTimeout(() => ul.remove(), 120), { once: true });
+  }
+
+  function renderMine() {
+    const ul = $("myList"); ul.textContent = "";
+    const today = iso(new Date());
+    const groups = {};
+    for (const b of S.myBookings) { if (b.date < today) continue; const k = b.date + "|" + b.seat; (groups[k] = groups[k] || { date: b.date, seat: b.seat, slots: [], ids: [] }); groups[k].slots.push(b.slot); groups[k].ids.push(b._id); }
+    for (const d of Object.values(S.dedications)) if (d.owner === S.me.id) groups["ded|" + d.seat] = { ded: true, seat: d.seat };
+    const list = Object.values(groups).sort((a, b) => (a.ded ? "0" : a.date).localeCompare(b.ded ? "0" : b.date));
+    if (!list.length) { const li = document.createElement("li"); li.className = "empty"; li.style.border = "0"; li.style.padding = "0"; li.textContent = "No upcoming bookings yet. Pick a free seat to make one."; ul.appendChild(li); return; }
+    for (const g of list) {
+      const li = document.createElement("li");
+      const sp = document.createElement("span");
+      if (g.ded) sp.innerHTML = '<span class="mono"></span> · dedicated to you'; else sp.innerHTML = '<span class="mono"></span> · ';
+      sp.firstChild.textContent = g.seat;
+      if (!g.ded) sp.appendChild(document.createTextNode(fmtLong(g.date) + (g.slots.length === 1 ? (g.slots[0] === "am" ? ", morning" : ", afternoon") : "")));
+      const b = document.createElement("button"); b.type = "button";
+      b.textContent = "Show";
+      b.addEventListener("click", () => { if (!g.ded) { S.date = g.date; store.watchDay(S.date); } S.sel = g.seat; render(); SEAT_BY_ID[g.seat].node.focus(); });
+      li.append(sp, b); ul.appendChild(li);
+      if (!g.ded) {
+        const c = document.createElement("button"); c.type = "button"; c.textContent = "Cancel"; c.disabled = !S.canWrite;
+        c.addEventListener("click", async () => { try { for (const id of g.ids) await store.remove(id); toast("Cancelled " + g.seat + " on " + fmtLong(g.date)); } catch (e) { handleWriteError(e); } });
+        li.appendChild(c);
+      }
+    }
+  }
+
+  function selectSeat(id) {
+    const s = SEAT_BY_ID[id];
+    if (status(s) === "off") { toast(id + " is outside the bookable part in this setting (O-12)."); return; }
+    S.sel = S.sel === id ? null : id; render();
+  }
+
+  let toastTimer = null;
+  function toast(msg) { const t = $("toast"); t.textContent = msg; t.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, 3200); }
+
+  // ---------- Wiring ----------
+  function setSlot(v) { S.slot = v; render(); }
+  $("slotDay").addEventListener("click", () => setSlot("day"));
+  $("slotAm").addEventListener("click", () => setSlot("am"));
+  $("slotPm").addEventListener("click", () => setSlot("pm"));
+  $("optSlotsDay").addEventListener("click", () => { S.slotSize = "day"; S.slot = "day"; saveSettings(); render(); });
+  $("optSlotsHalf").addEventListener("click", () => { S.slotSize = "half"; saveSettings(); render(); });
+  $("optAreaEast").addEventListener("click", () => { S.area = "east"; if (S.sel && SEAT_BY_ID[S.sel].part !== "east") S.sel = null; S.team = S.team.filter(id => SEAT_BY_ID[id].part === "east"); saveSettings(); render(); });
+  $("optAreaAll").addEventListener("click", () => { S.area = "all"; saveSettings(); render(); });
+  $("optDedRelease").addEventListener("click", () => { S.dedRule = "release"; saveSettings(); render(); });
+  $("optDedLocked").addEventListener("click", () => { S.dedRule = "locked"; saveSettings(); render(); });
+  $("findBtn").addEventListener("click", () => {
+    const n = Math.max(2, Math.min(12, parseInt($("teamSize").value, 10) || 2));
+    const found = findTogether(n);
+    if (!found) { toast("No group of " + n + " free seats together on this day. Try another day or fewer people."); return; }
+    S.team = found; S.teamAssign = {}; S.sel = null; render();
+    toast("Found " + n + " seats together: " + found[0] + " to " + found[found.length - 1]);
+  });
+
+  function setMode(mode) {
+    S.mode = mode;
+    const pill = $("modePill");
+    pill.className = "mode-pill" + (mode === "shared" ? " shared" : "");
+    pill.textContent = mode === "shared" ? "Shared · live for everyone with the link" : mode === "readonly" ? "Read-only" : "Local · saved in this browser only";
+  }
+
+  // ---------- Boot ----------
+  drawStatic(); renderDays();
+  local.load(); S.me = { id: "local-me", name: "", avatarUrl: "" };
+  setMode("local"); store.watchDay(S.date); store.watchStatic(); render();
+
+  (async function connect() {
+    if (!window.claude || typeof window.claude.use !== "function") return;
+    const [d, u] = await Promise.all([window.claude.use("db"), window.claude.use("user")]);
+    user = u;
+    if (!d || !u) return;
+    const me = await u.me();
+    if (!me.id) return;
+    db = d;
+    S.me = { id: me.id, name: me.name, avatarUrl: me.avatarUrl };
+    PROFILES[me.id] = me;
+    const cw = await u.can("data.write"); S.canWrite = cw !== false;
+    S.canEdit = await u.canEdit();
+    $("meName").textContent = me.name || "You"; $("meAvatar").src = me.avatarUrl; $("meAvatar").hidden = false;
+    local.subs.clear(); S.dayBookings = {}; S.myBookings = []; S.dedications = {}; S.releases = {};
+    setMode(S.canWrite ? "shared" : "readonly");
+    store.watchDay(S.date); store.watchStatic(); render();
+  })();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1115 @@
+{
+ "description": "Simulated bookings for local development and demos. workdayOffset counts workdays from the day the app is opened (0 = today or next workday). Copied from the prototype; none of these are real people.",
+ "bookings": [
+  {
+   "workdayOffset": 0,
+   "seat": "A-32",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 0,
+   "seat": "A-33",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 0,
+   "seat": "A-12",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 0,
+   "seat": "A-38",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 0,
+   "seat": "A-41",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 0,
+   "seat": "A-44",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 0,
+   "seat": "A-66",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 0,
+   "seat": "A-63",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 0,
+   "seat": "A-90",
+   "slots": [
+    "am"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 0,
+   "seat": "A-88",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 0,
+   "seat": "A-76",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 0,
+   "seat": "A-79",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 0,
+   "seat": "A-91",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 0,
+   "seat": "A-92",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 0,
+   "seat": "A-78",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 0,
+   "seat": "A-75",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 0,
+   "seat": "A-81",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 0,
+   "seat": "A-82",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 0,
+   "seat": "B-10",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 0,
+   "seat": "B-12",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 0,
+   "seat": "B-71",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 0,
+   "seat": "B-49",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 0,
+   "seat": "B-52",
+   "slots": [
+    "am"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 0,
+   "seat": "B-41",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 0,
+   "seat": "B-37",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 0,
+   "seat": "B-42",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 0,
+   "seat": "B-20",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 0,
+   "seat": "B-17",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 0,
+   "seat": "B-18",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 0,
+   "seat": "B-08",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 0,
+   "seat": "B-38",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 0,
+   "seat": "B-39",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 0,
+   "seat": "B-27",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 1,
+   "seat": "A-23",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 1,
+   "seat": "A-22",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 1,
+   "seat": "A-79",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 1,
+   "seat": "A-91",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 1,
+   "seat": "A-87",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 1,
+   "seat": "A-01",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 1,
+   "seat": "A-02",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 1,
+   "seat": "A-04",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 1,
+   "seat": "A-38",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 1,
+   "seat": "A-37",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 1,
+   "seat": "A-84",
+   "slots": [
+    "am"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 1,
+   "seat": "A-08",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 1,
+   "seat": "A-05",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 1,
+   "seat": "A-07",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 1,
+   "seat": "A-86",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 1,
+   "seat": "A-81",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 1,
+   "seat": "A-82",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 1,
+   "seat": "A-47",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 1,
+   "seat": "B-60",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 1,
+   "seat": "B-73",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 1,
+   "seat": "B-76",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 1,
+   "seat": "B-29",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 1,
+   "seat": "B-01",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 1,
+   "seat": "B-09",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 1,
+   "seat": "B-12",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 1,
+   "seat": "B-27",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 1,
+   "seat": "B-20",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 1,
+   "seat": "B-18",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 1,
+   "seat": "B-71",
+   "slots": [
+    "pm"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 1,
+   "seat": "B-72",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 1,
+   "seat": "B-14",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 1,
+   "seat": "B-15",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 1,
+   "seat": "B-13",
+   "slots": [
+    "am"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 2,
+   "seat": "A-65",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 2,
+   "seat": "A-70",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 2,
+   "seat": "A-73",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 2,
+   "seat": "A-22",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 2,
+   "seat": "A-19",
+   "slots": [
+    "am"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 2,
+   "seat": "A-85",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 2,
+   "seat": "A-82",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 2,
+   "seat": "A-81",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 2,
+   "seat": "A-45",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 2,
+   "seat": "B-65",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 2,
+   "seat": "B-67",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 2,
+   "seat": "B-29",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 2,
+   "seat": "B-30",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 2,
+   "seat": "B-19",
+   "slots": [
+    "am"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 2,
+   "seat": "B-20",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 2,
+   "seat": "B-18",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 2,
+   "seat": "B-17",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 3,
+   "seat": "A-03",
+   "slots": [
+    "am"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 3,
+   "seat": "A-04",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 3,
+   "seat": "A-38",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 3,
+   "seat": "A-78",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 3,
+   "seat": "A-67",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 3,
+   "seat": "A-68",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 3,
+   "seat": "A-66",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 3,
+   "seat": "A-69",
+   "slots": [
+    "am"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 3,
+   "seat": "A-73",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 3,
+   "seat": "B-69",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 3,
+   "seat": "B-65",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 3,
+   "seat": "B-67",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 3,
+   "seat": "B-47",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 3,
+   "seat": "B-45",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 3,
+   "seat": "B-44",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 3,
+   "seat": "B-43",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 3,
+   "seat": "B-56",
+   "slots": [
+    "am"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 4,
+   "seat": "A-44",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 4,
+   "seat": "A-58",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 4,
+   "seat": "A-61",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 5,
+   "seat": "A-53",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 5,
+   "seat": "A-55",
+   "slots": [
+    "am"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 5,
+   "seat": "A-52",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 5,
+   "seat": "A-62",
+   "slots": [
+    "pm"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 5,
+   "seat": "B-28",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 6,
+   "seat": "A-09",
+   "slots": [
+    "am"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 6,
+   "seat": "A-12",
+   "slots": [
+    "pm"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 7,
+   "seat": "A-29",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 7,
+   "seat": "A-57",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 7,
+   "seat": "A-62",
+   "slots": [
+    "pm"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 7,
+   "seat": "A-59",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 7,
+   "seat": "B-05",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 8,
+   "seat": "A-79",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 8,
+   "seat": "A-80",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 8,
+   "seat": "A-75",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 8,
+   "seat": "A-76",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 8,
+   "seat": "B-28",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated booking"
+  },
+  {
+   "workdayOffset": 9,
+   "seat": "A-41",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 9,
+   "seat": "A-44",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 9,
+   "seat": "A-39",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 9,
+   "seat": "A-42",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated team booking"
+  },
+  {
+   "workdayOffset": 9,
+   "seat": "B-50",
+   "slots": [
+    "am",
+    "pm"
+   ],
+   "label": "Simulated booking"
+  }
+ ]
+}
