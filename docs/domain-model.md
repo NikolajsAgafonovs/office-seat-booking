@@ -96,7 +96,8 @@ through to rows 4 to 7 like any ordinary seat.
 | partial | Book the free half |
 | mine | Cancel my booking |
 | dedmine | Release for this day / Take my seat back (0002 release only). Take back is disabled while someone else holds a booking that day. |
-| ded, taken | none (admin: Remove dedication on `ded`) |
+| taken | Cancel booking, only when `bookedBy` is the current user (a seat booked for a colleague, R-8, R-16); otherwise none |
+| ded | none (admin: Remove dedication) |
 | off | none; selecting shows an explanation referencing O-12 |
 | any except off, admin only | Make dedicated / Remove dedication |
 

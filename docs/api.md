@@ -15,14 +15,18 @@ status in the table below. The client maps `code` to behaviour as described in `
 | conflict | 409 | seat/date/slot already booked, or dedication rules block the write |
 | invalid_argument | 400 | bad date, slot, seat code, past date, label with a colleague |
 | quota_exceeded | 429 | storage or rate limit |
+| internal | 500 | unexpected server failure; the message is generic and the detail is only logged |
 
 ## Identity
 
 ### GET /api/me
-Returns the current user and permissions.
+Returns the current user, permissions, and the office time zone (R-30).
 ```
-{ "id": string, "name": string, "avatarUrl": string, "canWrite": boolean, "isAdmin": boolean }
+{ "id": string, "name": string, "avatarUrl": string, "canWrite": boolean, "isAdmin": boolean,
+  "officeTz": string }
 ```
+`officeTz` is the IANA zone name from server configuration. The client uses it for "today"
+and the day picker instead of a built-in default.
 
 ### GET /api/users?q=
 Directory search for team booking (R-24). Minimum 1 character. Returns at most 10.
@@ -72,7 +76,10 @@ response: { "booked": [{ "seat", "slots": [..] }], "lost": [seat] }
   a multi-item request; 409 is only for a single-item request, so the client can show the
   seat-specific message either way.
 - Rejects with `conflict` when the seat has a dedication the caller may not override
-  (invariant 3).
+  (invariant 3). This check runs before any write, so in a multi-item request one such seat
+  rejects the **whole** request rather than being reported as lost. That is intended: the
+  client never offers a dedicated seat for booking, so this only happens when a client is
+  out of date, and nothing should be written on its behalf.
 
 ### DELETE /api/bookings/:id
 Cancel one slot booking (R-8). Allowed for `by` or `bookedBy`. Idempotent: deleting a
