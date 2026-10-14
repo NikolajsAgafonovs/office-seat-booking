@@ -69,16 +69,64 @@ database server is needed on a laptop.
 
 ## Commands
 
-No scaffold exists yet. After "scaffold", replace this section with the real scripts
-(install, dev client, dev server, build, lint, test all, run a single test, db migrate,
-db seed) and keep it current.
+All from the repository root unless noted.
 
-## Architecture (per decision 0006; update once code exists)
+```
+npm install                          # once; also generates the Prisma client
+cp .env.example server/.env          # once; dev defaults
+npm run db:migrate -w server         # apply migrations (prisma migrate dev)
+npm run db:seed                      # load docs/fixtures/simulated-bookings.json
+npm run dev                          # server on :3000 and Vite client on :5173 together
+npm run dev -w server                # server only (tsx watch)
+npm run dev -w client                # client only
+npm run build                        # typecheck + build every workspace
+npm run typecheck                    # tsc --noEmit in every workspace
+npm run lint                         # eslint .
+npm run format                       # prettier --write .
+npm test                             # all Vitest projects (shared, server, client)
+npx vitest run --project server      # one workspace
+npx vitest run server/src/test/bookings.test.ts -t "A-06"   # one test by file and name
+npm run test:e2e                     # Playwright (client/e2e); needs `npx playwright install chromium` once
+npm run db:reset                     # drop, migrate, reseed the local SQLite file (destructive, local only)
+```
 
-npm workspaces: `client/` (React, Vite, TypeScript), `server/` (Fastify, TypeScript,
-Prisma), `shared/` (Zod schemas, types, seat-status derivation, date helpers used by both).
-The server exposes the contract in `docs/api.md`, enforces the invariants in
-`docs/domain-model.md`, and pushes changes over Server-Sent Events. The client renders the
-single page in `docs/ui.md`, derives seat status locally with the shared function, and
-keeps the open-question switches in `localStorage`. Tests map one-to-one to the scenarios
-in `docs/acceptance.md`, with the scenario ID in each test name.
+Notes:
+
+- npm 11 blocks third-party install scripts until approved; the approvals for Prisma and
+  esbuild are recorded in `package.json#allowScripts`. If a fresh clone prints "install
+  scripts not yet covered", run `npm install-scripts approve <pkg>` for the named packages.
+- The Prisma CLI refuses destructive commands (`--force-reset`, `migrate reset`) when it
+  detects an AI agent. Do not work around that; ask the owner to run them.
+- Server tests build one SQLite template with `prisma migrate deploy` in a global setup and
+  copy it per test file, so they need the migrations in `server/prisma/migrations` to be
+  current. After changing the schema run `npm run db:migrate -w server` and commit the
+  migration.
+
+## Architecture
+
+npm workspaces, all TypeScript, ESM.
+
+- `shared/` (`@seat/shared`): consumed as source, no build. Holds the domain vocabulary and
+  API types (`types.ts`), Zod request schemas (`schemas.ts`), the seat-status table from
+  `docs/domain-model.md` (`status.ts`), the "book together" finder from R-14 (`team.ts`),
+  calendar-date helpers in the office time zone (`dates.ts`), and floor-plan validation
+  (`floorPlan.ts`). Both sides must use these rather than reimplementing them, so the
+  server's invariant checks and the client's colouring cannot drift.
+- `server/`: Fastify 5. `app.ts` builds the app from an injectable context (config,
+  Prisma client, user directory, event bus, clock) so tests can freeze "today" and use a
+  throwaway database. Routes under `src/routes/` map one-to-one to the sections of
+  `docs/api.md`. Errors are thrown as `ApiHttpError` and rendered by one error handler
+  into the documented envelope. Identity is a signed session cookie plus a `Directory`
+  interface; only the dev provider (fixture users) exists, per decision 0007. Roles come
+  from `ADMIN_USERS` / `READONLY_USERS` (decision 0004). Live updates are Server-Sent
+  Events from `events.ts`, published by the write routes. Uniqueness of
+  `(date, slot, seat)` is a database constraint; the booking route treats a unique
+  violation as "lost", never as an error (R-10, R-17). Dates are stored as `YYYY-MM-DD`
+  strings (R-30).
+- `client/`: React 19 + Vite, one page, Zustand store, plain CSS with the tokens from
+  `docs/ui.md`. Fetches the plan and the chosen day, derives status with the shared
+  function, patches state from SSE, keeps the open-question switches in `localStorage`.
+  When `/api/me` is 401 in dev mode it shows a fixture-user sign-in card.
+- Tests: Vitest projects per workspace (root `vitest.config.ts`), Playwright in
+  `client/e2e`. Test names carry the acceptance scenario ID (`A-06`), so
+  `docs/acceptance.md` can be checked against `npx vitest run --reporter verbose`.

@@ -1,0 +1,32 @@
+{
+  "name": "@seat/client",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "React single-page client implementing docs/ui.md against docs/api.md (decision 0006).",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -p tsconfig.json --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "@seat/shared": "*",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "zustand": "^5.0.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.0",
+    "@testing-library/jest-dom": "^6.6.0",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.0",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.0",
+    "jsdom": "^30.0.0",
+    "vite": "^8.3.0"
+  }
+}

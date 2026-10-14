@@ -1,0 +1,8 @@
+node_modules
+dist
+coverage
+docs/
+server/src/generated
+client/playwright-report
+client/test-results
+package-lock.json
