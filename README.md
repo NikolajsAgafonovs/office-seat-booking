@@ -68,3 +68,25 @@ npm run test:e2e
 
 End-to-end tests need the browser once: `npx playwright install chromium`. They start the
 dev stack themselves if it is not already running.
+
+## Deployment
+
+The app runs on Fly.io as one machine with SQLite on a volume; see
+[decision 0009](docs/decisions/0009-hosting.md) for the reasoning and the one-time setup.
+Every push to `main` deploys through the GitHub Actions workflow `deploy.yml`, which needs
+the `FLY_API_TOKEN` repository secret. The image is built from the root `Dockerfile`:
+migrations run at container start, then Fastify serves the API and the built client on
+port 3000.
+
+To run the production build locally without Docker:
+
+```bash
+npm run build
+```
+
+```bash
+CLIENT_DIST=../client/dist npm start -w server
+```
+
+The deployed app still uses the development sign-in (decision 0007 is open), so treat it as
+a demo stage and keep its address inside the team.

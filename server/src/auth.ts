@@ -103,13 +103,9 @@ export function userFromRequest(
   return profile ? toMe(profile, config) : null;
 }
 
+/** httpOnly, sameSite, path and secure come from the cookie plugin defaults (app.ts). */
 export function setSession(reply: FastifyReply, userId: string): void {
-  reply.setCookie(SESSION_COOKIE, userId, {
-    signed: true,
-    httpOnly: true,
-    sameSite: 'lax',
-    path: '/',
-  });
+  reply.setCookie(SESSION_COOKIE, userId, { signed: true });
 }
 
 export function clearSession(reply: FastifyReply): void {

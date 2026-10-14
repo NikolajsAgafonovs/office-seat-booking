@@ -131,3 +131,16 @@ choice in decision 0006 if so.
 | cancel booking | if by or bookedBy | no | if by or bookedBy |
 | release / take back own dedicated seat | yes | no | yes |
 | set / remove dedication | no | no | yes |
+
+## Operations (decision 0009)
+
+### GET /api/health
+Public, no session. Returns `{ "ok": true }` once the server is listening. Used as the
+host's HTTP check. It does not touch the database.
+
+### Static client
+In deployed environments the same server serves the built client: `GET /` and any `GET` or
+`HEAD` path that is not under `/api` and matches no file returns `index.html`, so client-side
+routes survive a reload. Hashed files under `/assets/` are sent with
+`Cache-Control: public, max-age=31536000, immutable`; `index.html` is never cached. Unknown
+paths under `/api` keep returning the JSON `not_found` envelope, whatever the method.
