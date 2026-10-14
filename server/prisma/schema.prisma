@@ -1,0 +1,51 @@
+// Persistence per decision 0008 and docs/domain-model.md.
+// Dates are stored as `YYYY-MM-DD` strings (calendar dates in the office time zone, R-30),
+// never as timestamps, so the same schema works on SQLite and PostgreSQL.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  // Deviation from decision 0008 (reported in the sync report): Prisma fixes the provider in
+  // the schema, so SQLite here is for local development and tests. Deployed environments
+  // need a copy of this schema with `provider = "postgresql"` and their own migrations.
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+/// Booking entity. Natural key (date, slot, seat) is unique (R-10, invariant 1).
+model Booking {
+  id        String   @id // `date_slot_seat`
+  date      String
+  slot      String // "am" | "pm"
+  seat      String
+  by        String // occupant
+  bookedBy  String // who made it (R-16)
+  label     String? // seat held for a team (R-16, invariant 7)
+  createdAt DateTime @default(now())
+
+  @@unique([date, slot, seat])
+  @@index([date])
+  @@index([by, date])
+}
+
+/// Dedication entity. One owner per seat (R-18).
+model Dedication {
+  seat      String   @id
+  owner     String
+  createdAt DateTime @default(now())
+
+  @@index([owner])
+}
+
+/// Release entity: dedicated seat opened for one date (R-20, decision 0002).
+model Release {
+  id   String @id // `date_seat`
+  date String
+  seat String
+  by   String
+
+  @@unique([date, seat])
+  @@index([date])
+}

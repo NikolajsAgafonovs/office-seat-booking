@@ -9,3 +9,8 @@ coverage/
 *.db
 .DS_Store
 Thumbs.db
+server/.tmp/
+server/prisma/*.db*
+client/playwright-report/
+client/test-results/
+.tmp-*
