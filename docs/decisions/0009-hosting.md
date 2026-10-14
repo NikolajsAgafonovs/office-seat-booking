@@ -62,5 +62,9 @@ fly launch --no-deploy --copy-config --name office-seat-booking --region arn
 fly volumes create seat_data --region arn --size 1
 fly secrets set COOKIE_SECRET=<random 48+ characters>
 fly deploy
-fly tokens create deploy -x 999999h   # paste the output into the FLY_API_TOKEN repository secret
+fly tokens create deploy --name github-actions-deploy --expiry 8760h | gh secret set FLY_API_TOKEN
 ```
+
+The deploy token is app-scoped and expires after one year (created 2026-10-14, expires
+2027-10-14). Renew it with the same command before it expires; `fly tokens list` shows the
+date. The workflow can also be run by hand from the Actions tab (`workflow_dispatch`).
