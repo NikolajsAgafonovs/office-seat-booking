@@ -1,12 +1,7 @@
 // Client-side constants that mirror server configuration.
-import { DEFAULT_OFFICE_TZ } from '@seat/shared';
 
-/**
- * Office time zone for "today" and the workday picker (R-30, R-2). The server reads
- * OFFICE_TZ from its environment; api.md exposes no endpoint for it, so the client uses the
- * shared default. Flagged in the sync report.
- */
-export const OFFICE_TZ = DEFAULT_OFFICE_TZ;
+// The office time zone (R-30) is not a constant here: it arrives in `GET /api/me` as
+// `officeTz` and the store recomputes "today" and the day picker from it (api.md "Identity").
 
 /** How many workdays the day picker offers (R-2). */
 export const WORKDAY_COUNT = 10;

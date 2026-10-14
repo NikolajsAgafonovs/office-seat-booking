@@ -32,6 +32,7 @@ export function meAs(id: keyof typeof USERS): Me {
     ...USERS[id],
     canWrite: id !== 'dan',
     isAdmin: id === 'carol',
+    officeTz: 'Europe/Riga',
   };
 }
 

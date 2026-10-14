@@ -11,6 +11,7 @@ import {
   loadFloorPlan,
   settingsSchema,
   slotsFor,
+  DEFAULT_OFFICE_TZ,
   todayIso,
   workdays,
 } from '@seat/shared';
@@ -29,7 +30,7 @@ import type {
   UserProfile,
 } from '@seat/shared';
 import { ApiError, api } from './api';
-import { OFFICE_TZ, SETTINGS_KEY, WORKDAY_COUNT } from './config';
+import { SETTINGS_KEY, WORKDAY_COUNT } from './config';
 import { derive } from './derive';
 import { connectEvents, disconnectEvents } from './events';
 import { TEXT } from './format';
@@ -135,7 +136,8 @@ function byKey<T>(items: readonly T[], key: (t: T) => string): Record<string, T>
 
 /** Fresh data state; also used by tests to reset between scenarios. */
 export function initialData(): AppData {
-  const today = todayIso(OFFICE_TZ);
+  // Placeholder zone until GET /api/me supplies `officeTz` (R-30); `boot` recomputes.
+  const today = todayIso(DEFAULT_OFFICE_TZ);
   const days = workdays(WORKDAY_COUNT, today);
   return {
     me: null,
@@ -220,10 +222,16 @@ export const useStore = create<AppStore>()((set, get) => {
         }
         return;
       }
+      // R-30 / R-2: "today" and the day picker follow the office zone the server reports.
+      const today = todayIso(me.officeTz);
+      const days = workdays(WORKDAY_COUNT, today);
       set((s) => ({
         me,
         mode: me.canWrite ? 'shared' : 'readonly',
         profiles: { ...s.profiles, [me.id]: me },
+        today,
+        days,
+        date: days.includes(s.date) ? s.date : days[0]!,
       }));
       await get().loadAll();
       connectEvents({

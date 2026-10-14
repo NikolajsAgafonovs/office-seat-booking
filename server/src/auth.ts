@@ -86,6 +86,7 @@ export function toMe(profile: UserProfile, config: Config): Me {
     avatarUrl: profile.avatarUrl,
     canWrite: !config.readonlyUsers.has(profile.id),
     isAdmin: config.adminUsers.has(profile.id),
+    officeTz: config.officeTz,
   };
 }
 
