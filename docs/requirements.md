@@ -106,8 +106,10 @@ themselves or for a group of colleagues sitting together.
 - **R-28** Light and dark colour schemes follow the operating system preference.
 - **R-29** All interactive elements are reachable and operable by keyboard; state is
   conveyed with `aria-pressed`, `aria-live` and labels, not colour alone.
-- **R-30** Dates are handled in the office's local time zone. Booking keys use the calendar
-  date, not UTC instants.
+- **R-30** Dates are handled in the office's local time zone, which is **Europe/Riga**.
+  Booking keys use the calendar date, not UTC instants. The zone is configuration
+  (`OFFICE_TZ`), exposed to the client by the API (see `api.md`, `GET /api/me`), so the
+  client never hard-codes it.
 
 ## Open questions
 
