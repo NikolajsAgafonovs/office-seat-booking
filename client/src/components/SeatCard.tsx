@@ -117,6 +117,18 @@ export function SeatCard() {
             Cancel my booking
           </button>
         )}
+        {/* domain-model.md "Available actions per status": a taken seat I booked for a
+            colleague can be cancelled by me (R-8, R-16). */}
+        {st === 'taken' && me && bookings.some((b) => b.bookedBy === me.id) && (
+          <button
+            type="button"
+            className="btn"
+            disabled={ro}
+            onClick={() => void cancelSeat(seat.id)}
+          >
+            Cancel booking
+          </button>
+        )}
         {/* R-20, decision 0002 "release": owner releases or takes back for this day. */}
         {isOwner &&
           dedRule === 'release' &&

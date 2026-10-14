@@ -20,6 +20,7 @@ describe('identity (R-22 to R-25, decision 0007)', () => {
       id: 'carol',
       canWrite: true,
       isAdmin: true,
+      officeTz: 'Europe/Riga', // R-30: the client takes the zone from here
     });
     expect(t.json<Me>(await t.as('dan', { method: 'GET', url: '/api/me' }))).toMatchObject({
       canWrite: false,

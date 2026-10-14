@@ -67,6 +67,8 @@ export interface Me {
   avatarUrl: string;
   canWrite: boolean;
   isAdmin: boolean;
+  /** IANA office time zone from server configuration (R-30); the client never hard-codes it. */
+  officeTz: string;
 }
 
 /** GET /api/users, POST /api/users/resolve */
