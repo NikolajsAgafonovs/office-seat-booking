@@ -1,0 +1,14 @@
+node_modules
+**/node_modules
+**/dist
+**/.tmp
+**/*.db
+**/*.db-journal
+.git
+.github
+.claude
+client/playwright-report
+client/test-results
+server/.env
+.env
+docs/reference

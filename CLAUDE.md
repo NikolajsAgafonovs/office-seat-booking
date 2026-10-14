@@ -72,6 +72,8 @@ npx vitest run --project server      # one workspace
 npx vitest run server/src/test/bookings.test.ts -t "A-06"   # one test by file and name
 npm run test:e2e                     # Playwright (client/e2e); needs `npx playwright install chromium` once
 npm run db:reset                     # drop, migrate, reseed the local SQLite file (destructive, local only)
+npm start -w server                  # run the built server (server/dist, esbuild bundle); CLIENT_DIST=../client/dist also serves the client
+fly deploy                           # owner only; CI deploys main automatically (decision 0009)
 ```
 
 Notes:
@@ -111,6 +113,13 @@ npm workspaces, all TypeScript, ESM.
   `docs/ui.md`. Fetches the plan and the chosen day, derives status with the shared
   function, patches state from SSE, keeps the open-question switches in `localStorage`.
   When `/api/me` is 401 in dev mode it shows a fixture-user sign-in card.
+- Hosting (decision 0009): one Fly.io machine built from the root `Dockerfile`.
+  `deploy/start.sh` applies migrations to the mounted SQLite volume and starts
+  `server/dist/server.js`, an esbuild bundle that inlines `@seat/shared`. With
+  `CLIENT_DIST` set the server also serves `client/dist` with a single-page fallback for
+  non-`/api` paths, and `GET /api/health` is the host check. `fly.toml` pins exactly one
+  machine because the SSE bus is in-process. Deploys run from `.github/workflows/deploy.yml`
+  on pushes to `main`; Claude never deploys from a laptop.
 - Tests: Vitest projects per workspace (root `vitest.config.ts`), Playwright in
   `client/e2e`. Test names carry the acceptance scenario ID (`A-06`), so
   `docs/acceptance.md` can be checked against `npx vitest run --reporter verbose`.

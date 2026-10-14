@@ -17,6 +17,11 @@ export interface Config {
   /** C-2: docs/floor-plan.json is the source of truth. */
   floorPlanPath: string;
   cookieSecret: string;
+  /** Decision 0009: serve the built client from this directory; unset in development. */
+  clientDist: string | null;
+  /** Decision 0009: behind the Fly proxy, trust X-Forwarded-* and mark cookies Secure. */
+  trustProxy: boolean;
+  secureCookies: boolean;
 }
 
 function list(v: string | undefined): Set<string> {
@@ -32,6 +37,7 @@ const serverRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '.
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   const authMode = env.AUTH_MODE ?? 'dev';
+  const production = env.NODE_ENV === 'production';
   if (authMode !== 'dev') {
     throw new Error(
       `AUTH_MODE=${authMode} is not implemented yet; only "dev" is wired (decision 0007).`,
@@ -46,5 +52,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     officeTz: env.OFFICE_TZ ?? DEFAULT_OFFICE_TZ,
     floorPlanPath: path.resolve(serverRoot, env.FLOOR_PLAN_PATH ?? '../docs/floor-plan.json'),
     cookieSecret: env.COOKIE_SECRET ?? 'dev-only-secret-change-in-deployment',
+    clientDist: env.CLIENT_DIST ? path.resolve(serverRoot, env.CLIENT_DIST) : null,
+    trustProxy: env.TRUST_PROXY ? env.TRUST_PROXY !== '0' : production,
+    secureCookies: env.COOKIE_SECURE ? env.COOKIE_SECURE !== '0' : production,
   };
 }

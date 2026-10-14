@@ -33,3 +33,4 @@ Rules:
 | 0006 | Technology stack | proposed |
 | 0007 | Identity provider | proposed |
 | 0008 | Persistence | proposed |
+| 0009 | Hosting (Fly.io) | decided |

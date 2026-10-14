@@ -31,7 +31,9 @@ export interface TestApp {
   close(): Promise<void>;
 }
 
-export async function createTestApp(overrides: { now?: () => Date } = {}): Promise<TestApp> {
+export async function createTestApp(
+  overrides: { now?: () => Date; clientDist?: string } = {},
+): Promise<TestApp> {
   const dbFile = path.join(TMP_DIR, `${randomUUID()}.db`);
   copyFileSync(TEMPLATE_DB, dbFile);
   const config: Config = {
@@ -43,6 +45,9 @@ export async function createTestApp(overrides: { now?: () => Date } = {}): Promi
     officeTz: 'Europe/Riga',
     floorPlanPath: FLOOR_PLAN_PATH,
     cookieSecret: 'test-secret',
+    clientDist: overrides.clientDist ?? null,
+    trustProxy: false,
+    secureCookies: false,
   };
   const app = buildApp({
     config,
