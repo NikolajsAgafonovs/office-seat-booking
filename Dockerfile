@@ -4,6 +4,9 @@
 FROM node:24-bookworm-slim AS build
 WORKDIR /app
 ENV CI=true
+# Prisma detects the OpenSSL version at `prisma generate`; without the library it guesses wrong.
+RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
 # Dependency manifests first so the install layer caches.
 COPY package.json package-lock.json ./
 COPY shared/package.json shared/

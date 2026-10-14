@@ -3,7 +3,9 @@
 // never as timestamps, so the same schema works on SQLite and PostgreSQL.
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  // "native" for laptops and CI; the Debian/OpenSSL 3 engine for the Fly image (decision 0009).
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
 }
 
 datasource db {
